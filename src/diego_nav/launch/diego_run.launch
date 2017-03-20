@@ -1,0 +1,141 @@
+<launch>
+  <master auto="start"/>
+  
+  <arg name="camera" default="camera" />
+  
+  <node pkg="xfei_asr" type="tts_subscribe_speak" name="tts_subscribe_speak" output="screen">
+  </node>
+  
+  <node pkg="sound_play" type="soundplay_node.py" name="soundplay_node" output="screen">
+  </node>
+  
+  <node name="arduino" pkg="ros_arduino_python" type="arduino_node.py" output="screen">
+      <rosparam file="$(find ros_arduino_python)/config/my_arduino_params.yaml" command="load" />
+  </node>  
+  
+  <node pkg="diego_nav" type="robot_camera_tf_publisher" name="robot_camera_tf_publisher" output="screen">
+  </node>    
+  
+  <node pkg="diego_nav" type="robot_laser_tf_publisher" name="robot_laser_tf_publisher" output="screen">
+  </node> 
+  
+  <!--
+  <node pkg="diego_nav" type="XtionPointCloud" name="XtionPointCloud" output="screen">
+  </node> 
+  -->
+  
+  <!-- start sensor-->
+  <!--
+  <include file="$(find openni_launch)/launch/openni.launch">
+    <arg name="camera" default="$(arg camera)"/>
+  </include>
+  -->
+  
+  <!-- dephimage_to_laserscan node-->
+  <!-- 
+  <node name="depthimage_to_laserscan" pkg="depthimage_to_laserscan" type="depthimage_to_laserscan" > 
+    <remap from="image" to="$(arg camera)/depth_registered/image_raw"/>
+    <remap from="camera_info" to="$(arg camera)/depth_registered/camera_info"/>
+    <remap from="scan" to="$(arg camera)/scan1"/>
+  </node>
+  -->
+  
+  <!-- run pointcloud_to_laserscan node -->
+  <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
+      <remap from="cloud_in" to="$(arg camera)/depth_registered/points"/>
+      <remap from="scan" to="$(arg camera)/scan"/>
+      <rosparam>
+          target_frame: camera_link # Leave disabled to output scan in pointcloud frame
+          transform_tolerance: 0.01
+          min_height: 0.0
+          max_height: 1.0
+
+          angle_min: -1.5708 # -M_PI/2
+          angle_max: 1.5708 # M_PI/2
+          angle_increment: 0.087 # M_PI/360.0
+          scan_time: 0.3333
+          range_min: 0.45
+          range_max: 4.0
+          use_inf: true
+
+          # Concurrency level, affects number of pointclouds queued for processing and number of threads used
+          # 0 : Detect number of cores
+          # 1 : Single threaded
+          # 2->inf : Parallelism level
+          concurrency_level: 1
+      </rosparam>
+
+  </node> 
+  
+
+  
+  <!-- gmapping node -->
+  <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping">
+    <remap from="scan" to="$(arg camera)/scan"/>
+    <param name="delta" value="0.1"/>
+    <param name="maxUrange" value="4.99"/>
+       <param name="xmin" value="-5.0"/>
+       <param name="ymin" value="-5.0"/>
+    <param name="xmax" value="5.0"/>
+    <param name="ymax" value="5.0"/>
+    <param name="particles" value="60"/>
+    <param name="srr" value="0"/>
+    <param name="srt" value="0"/>
+    <param name="str" value="0.05"/>
+    <param name="stt" value="0.05"/>
+    <param name="minimumScore" value="200"/>
+    <param name="map_update_interval" value="1"/>
+    <param name="lsigma" value="0.05"/>
+  </node>  
+
+  <!-- amcl node -->
+  <node pkg="amcl" type="amcl" name="amcl" output="screen">
+
+  <remap from="scan" to="$(arg camera)/scan"/>
+  <!-- Publish scans from best pose at a max of 10 Hz -->
+  <param name="use_map_topic" value="true"/>
+  <param name="odom_model_type" value="omni"/>
+  <param name="odom_alpha5" value="0.1"/>
+  <param name="transform_tolerance" value="0.5" />
+  <param name="gui_publish_rate" value="10.0"/>
+  <param name="laser_max_beams" value="300"/>
+  <param name="min_particles" value="500"/>
+  <param name="max_particles" value="5000"/>
+  <param name="kld_err" value="0.1"/>
+  <param name="kld_z" value="0.99"/>
+  <param name="odom_alpha1" value="0.1"/>
+  <param name="odom_alpha2" value="0.1"/>
+  <!-- translation std dev, m -->
+  <param name="odom_alpha3" value="0.1"/>
+  <param name="odom_alpha4" value="0.1"/>
+  <param name="laser_z_hit" value="0.9"/>
+  <param name="laser_z_short" value="0.05"/>
+  <param name="laser_z_max" value="0.05"/>
+  <param name="laser_z_rand" value="0.5"/>
+  <param name="laser_sigma_hit" value="0.2"/>
+  <param name="laser_lambda_short" value="0.1"/>
+  <param name="laser_lambda_short" value="0.1"/>
+  <param name="laser_model_type" value="likelihood_field"/>
+  <!-- <param name="laser_model_type" value="beam"/> -->
+  <param name="laser_min_range" value="1"/>
+  <param name="laser_max_range" value="5"/>
+  <param name="laser_likelihood_max_dist" value="2.0"/>
+  <param name="update_min_d" value="0.2"/>
+  <param name="update_min_a" value="0.5"/>
+  <param name="resample_interval" value="1"/>
+  <param name="transform_tolerance" value="0.1"/>
+  <param name="recovery_alpha_slow" value="0.0"/>
+  <param name="recovery_alpha_fast" value="0.0"/>
+
+
+  </node>
+ 
+  <!-- move_base node -->
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <rosparam file="$(find diego_nav)/config/costmap_common_params.yaml" command="load" ns="global_costmap" />
+    <rosparam file="$(find diego_nav)/config/costmap_common_params.yaml" command="load" ns="local_costmap" />
+    <rosparam file="$(find diego_nav)/config/local_costmap_params.yaml" command="load" />
+    <rosparam file="$(find diego_nav)/config/global_costmap_params.yaml" command="load" />
+    <rosparam file="$(find diego_nav)/config/base_local_planner_params.yaml" command="load" />
+  </node>
+</launch>

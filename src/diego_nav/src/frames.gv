@@ -1,0 +1,12 @@
+digraph G {
+"base_link" -> "base_stabilized"[label="Broadcaster: /base_link_2_base_stabilized_link\nAverage rate: 10.178 Hz\nMost recent transform: 1481903982.917 ( -0.015 sec old)\nBuffer length: 4.716 sec\n"];
+"base_footprint" -> "base_link"[label="Broadcaster: /arduino\nAverage rate: 19.075 Hz\nMost recent transform: 1481903982.943 ( -0.041 sec old)\nBuffer length: 4.823 sec\n"];
+"map" -> "base_footprint"[label="Broadcaster: /map_2_base_footprint\nAverage rate: 10.188 Hz\nMost recent transform: 1481903982.917 ( -0.015 sec old)\nBuffer length: 4.711 sec\n"];
+"base_frame" -> "odom"[label="Broadcaster: /base_2_nav_link\nAverage rate: 10.183 Hz\nMost recent transform: 1481903982.924 ( -0.022 sec old)\nBuffer length: 4.714 sec\n"];
+"base_stabilized" -> "base_frame"[label="Broadcaster: /base_stablized_2_base_frame\nAverage rate: 10.180 Hz\nMost recent transform: 1481903982.964 ( -0.062 sec old)\nBuffer length: 4.715 sec\n"];
+"base_frame" -> "camera_link"[label="Broadcaster: /base_frame_2_laser_link\nAverage rate: 10.187 Hz\nMost recent transform: 1481903982.929 ( -0.027 sec old)\nBuffer length: 4.712 sec\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1481903982.902"[ shape=plaintext ] ;
+ }->"map";
+}

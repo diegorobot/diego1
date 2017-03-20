@@ -1,0 +1,9 @@
+<launch>
+
+  <node name="recognizer" pkg="pocketsphinx" type="recognizer.py" output="screen">
+    <param name="lm" value="$(find pocketsphinx)/model/lm/en/wakeup.lm"/>
+    <param name="dict" value="$(find pocketsphinx)/model/lm/en/wakeup.dic"/>
+    <param name="hmm" value="$(find pocketsphinx)/model/hmm/en/tidigits"/>
+  </node>
+
+</launch>

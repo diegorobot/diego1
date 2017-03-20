@@ -1,0 +1,8 @@
+<launch>
+  <master auto="start"/> 
+  
+  <node name="arduino" pkg="ros_arduino_python" type="arduino_node.py" output="screen">
+      <rosparam file="$(find ros_arduino_python)/config/my_arduino_params.yaml" command="load" />
+  </node>  
+  
+</launch>
