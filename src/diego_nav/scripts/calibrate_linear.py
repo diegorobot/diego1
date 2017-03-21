@@ -16,7 +16,7 @@ class CalibrateLinear():
         r = rospy.Rate(self.rate)
 
         # Set the distance to travel
-        self.test_distance = 2.0 # meters
+        self.test_distance = 1.0 # meters
         self.speed = 0.2 # meters per second
         self.tolerance = 0.01 # meters
         self.odom_linear_scale_correction = 1.0
