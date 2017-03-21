@@ -76,7 +76,7 @@ void resetPID(){
 }
 
 /* PID routine to compute the next motor commands */
-void dorightID(SetPointInfo * p) {
+void dorightPID(SetPointInfo * p) {
   long Perror;
   long output;
   int input;
@@ -188,7 +188,7 @@ void updatePID() {
 
   /* Compute PID update for each motor */
   //Serial.println("rightPID************");
-  dorightID(&rightPID);
+  dorightPID(&rightPID);
   //Serial.println("leftPID************");
   doleftPID(&leftPID);
 
