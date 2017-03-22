@@ -1,1 +1,1 @@
-# please install the ROS package followed the course step by step before runing diego 1
+please install the ROS package followed the course step by step before runing diego 1
