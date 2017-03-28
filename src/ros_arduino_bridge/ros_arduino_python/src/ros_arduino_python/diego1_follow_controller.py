@@ -16,49 +16,34 @@ class FollowController:
         self.name = name
 
         # rates
-        self.rate = 20.0
+        self.rate = 10.0
         
-        # left Arm jonits list
-        self.left_shoulder_stevo_to_axis=Joint(left_shoulder_stevo_to_axis,6,PI)
-        self.left_shoulder_stevo_lift_to_axis=Joint(left_shoulder_stevo_lift_to_axis,7,PI)
-        self.left_big_arm_up_to_axis=Joint(left_big_arm_up_to_axis,8,PI)
-        self.left_small_arm_up_to_axis=Joint(left_small_arm_up_to_axis,9,PI)
-        self.left_wrist_run_stevo_to_axis=Joint(left_wrist_run_stevo_to_axis,10,PI)
-                
+        # Arm jonits
+        self.arm_base_to_arm_round_joint_stevo0=Joint(arm_base_to_arm_round_joint_stevo0,0,1.5797,-1.5707,130,0,False)
+        self.shoulder_2_to_arm_joint_stevo1=Joint(shoulder_2_to_arm_joint_stevo1,1,1.5707,-0.1899,115,45,False)
+        self.big_arm_round_to_joint_stevo2=Joint(big_arm_round_to_joint_stevo2,2,2.5891,1,130,45,False)
+        self.arm_joint_stevo2_to_arm_joint_stevo3=Joint(arm_joint_stevo2_to_arm_joint_stevo3,3,1.5707,-1.5707,130,0,False)
+        self.wrist_to_arm_joint_stevo4=Joint(wrist_to_arm_joint_stevo4,4,1.5707,-1.5707,130,0,False)
+        self.arm_joint_stevo4_to_arm_joint_stevo5=Joint(arm_joint_stevo4_to_arm_joint_stevo5,5,1.5707,-1.5707,130,0,True)
         
-        # left hand joint
-        self.left_hand_run_stevo_to_left_hand_run_stevo_axis=Joint(left_hand_run_stevo_to_left_hand_run_stevo_axis,11,PI)
+        # gripper joint
+        self.hand_to_grip_joint_stevo6=Joint(hand_to_grip_joint_stevo6,6,0.8285,-0.1762,140,0,False)
+        self.hand_to_grip_joint_stevo7=Joint(hand_to_grip_joint_stevo7,7,0.1584,-0.8285,140,0,False)
         
-        # right Arm jonits
-        self.right_shoulder_stevo_to_axis=Joint(right_shoulder_stevo_to_axis,0,PI)
-        self.right_shoulder_stevo_lift_to_axis=Joint(right_shoulder_stevo_lift_to_axis,1,PI)
-        self.right_big_arm_up_to_axis=Joint(right_big_arm_up_to_axis,2,PI)
-        self.right_small_arm_up_to_axis=Joint(right_small_arm_up_to_axis,3,PI)
-        self.right_wrist_run_stevo_to_axis=Joint(right_wrist_run_stevo_to_axis,4,PI)
-        
-        # left hand joint
-        self.right_hand_run_stevo_to_right_hand_run_stevo_axis=Joint(right_hand_run_stevo_to_right_hand_run_stevo_axis,5,PI)
+        self.joints=[arm_base_to_arm_round_joint_stevo0,
+        shoulder_2_to_arm_joint_stevo1,
+        big_arm_round_to_joint_stevo2,
+        arm_joint_stevo2_to_arm_joint_stevo3,
+        wrist_to_arm_joint_stevo4,
+        arm_joint_stevo4_to_arm_joint_stevo5,
+        hand_to_grip_joint_stevo6,
+        hand_to_grip_joint_stevo7]
         
         # set the left arm back to the resting position
-        rospy.loginfo("set the left arm back to the resting position")
-        self.left_shoulder_stevo_to_axis.setCurrentPosition(PI/2)
-        self.left_shoulder_stevo_lift_to_axis.setCurrentPosition(PI/2)
-        self.left_big_arm_up_to_axis.setCurrentPosition(PI/2)
-        self.left_small_arm_up_to_axis.setCurrentPosition(PI/2)
-        self.left_wrist_run_stevo_to_axis.setCurrentPosition(PI/2)
-        # set the right arm back to the resting position
-        rospy.loginfo("set the right arm back to the resting position")
-        self.right_shoulder_stevo_to_axis.setCurrentPosition(PI/2)
-        self.right_shoulder_stevo_lift_to_axis.setCurrentPosition(PI/2)
-        self.right_big_arm_up_to_axis.setCurrentPosition(PI/2)
-        self.right_small_arm_up_to_axis.setCurrentPosition(PI/2)
-        self.right_wrist_run_stevo_to_axis.setCurrentPosition(PI/2)
+        rospy.loginfo("set the arm back to the default pose")
+
         # set the left hand back to the resting position
-        rospy.loginfo("set the left hand back to the resting position")
-        self.left_hand_run_stevo_to_left_hand_run_stevo_axis.setCurrentPosition(PI/2)
-        # set the right hand back to the resting position
-        rospy.loginfo("set the right hand back to the resting position")
-        self.right_hand_run_stevo_to_right_hand_run_stevo_axis.setCurrentPosition(PI/2)
+        rospy.loginfo("set the gripper back to the default pose")
 
         # action server
         self.server = actionlib.SimpleActionServer('follow_joint_trajectory', FollowJointTrajectoryAction, execute_cb=self.actionCb, auto_start=True)
@@ -71,7 +56,7 @@ class FollowController:
 
         if set(self.joints) != set(traj.joint_names):
             for j in self.joints:
-                if j not in traj.joint_names:
+                if j.name not in traj.joint_names:
                     msg = "Trajectory joint names does not match action controlled joints." + str(traj.joint_names)
                     rospy.logerr(msg)
                     self.server.set_aborted(text=msg)
@@ -85,7 +70,7 @@ class FollowController:
             return
 
         try:
-            indexes = [traj.joint_names.index(joint) for joint in self.joints]
+            indexes = [traj.joint_names.index(joint.name) for joint in self.joints]
         except ValueError as val:
             msg = "Trajectory invalid."
             rospy.logerr(msg)
@@ -113,7 +98,7 @@ class FollowController:
         rospy.logdebug(traj)
         # carry out trajectory
         try:
-            indexes = [traj.joint_names.index(joint) for joint in self.joints]
+            indexes = [traj.joint_names.index(joint.name) for joint in self.joints]
         except ValueError as val:
             rospy.logerr("Invalid joint in trajectory.")
             return False
@@ -124,29 +109,14 @@ class FollowController:
             start = rospy.Time.now()
 
         r = rospy.Rate(self.rate)
-        last = [ self.device.joints[joint].position for joint in self.joints ]
-        for point in traj.points:
-            while rospy.Time.now() + rospy.Duration(0.01) < start:
+	for point in traj.points:            
+            desired = [ point.positions[k] for k in indexes ]#期望的控制点
+            for i in indexes
+                #self.joints[i].position=desired[i]#控制点对应的舵机的位置
+                self.joints[i].setCurrentPosition(self.joints[i].position)#发送舵机的控制命令
+
+            while rospy.Time.now() + rospy.Duration(0.01) < start:#如果当前时间小于舵机这个点预期完成时间，则等待
                 rospy.sleep(0.01)
-            desired = [ point.positions[k] for k in indexes ]
-            endtime = start + point.time_from_start
-            while rospy.Time.now() + rospy.Duration(0.01) < endtime:
-                err = [ (d-c) for d,c in zip(desired,last) ]
-                velocity = [ abs(x / (self.rate * (endtime - rospy.Time.now()).to_sec())) for x in err ]
-                rospy.logdebug(err)
-                for i in range(len(self.joints)):
-                    if err[i] > 0.001 or err[i] < -0.001:
-                        cmd = err[i] 
-                        top = velocity[i]
-                        if cmd > top:
-                            cmd = top
-                        elif cmd < -top:
-                            cmd = -top
-                        last[i] += cmd
-                        self.device.joints[self.joints[i]].setControlOutput(last[i])
-                    else:
-                        velocity[i] = 0
-                r.sleep()
         return True
 
     def active(self):
