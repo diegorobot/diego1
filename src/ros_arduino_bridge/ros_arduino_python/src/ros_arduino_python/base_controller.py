@@ -289,22 +289,26 @@ class BaseController:
         
         x = req.linear.x         # m/s
         th = req.angular.z       # rad/s
-
+		
+        
         if x == 0:
             # Turn in place
-            right = th * self.wheel_track  * self.gear_reduction / 2.0
+            #right = th * self.wheel_track  * self.gear_reduction / 2.0
+            right = th * self.wheel_track / 2.0
             left = -right
         elif th == 0:
             # Pure forward/backward motion
             left = right = x
         else:
             # Rotation about a point in space
-            left = x - th * self.wheel_track  * self.gear_reduction / 2.0
-            right = x + th * self.wheel_track  * self.gear_reduction / 2.0
+            #left = x - th * self.wheel_track  * self.gear_reduction / 2.0
+            #right = x + th * self.wheel_track  * self.gear_reduction / 2.0
+            left = x - th * self.wheel_track / 2.0
+            right = x + th * self.wheel_track / 2.0
+
             
         self.v_des_left = int(left * self.ticks_per_meter / self.arduino.PID_RATE)
         self.v_des_right = int(right * self.ticks_per_meter / self.arduino.PID_RATE)
-        
 
         
 
