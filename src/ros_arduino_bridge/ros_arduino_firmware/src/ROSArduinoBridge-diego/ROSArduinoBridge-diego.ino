@@ -55,6 +55,7 @@
 
 /* The L298P dual motor driver shield */
 #define L298P
+//#define L298P_4WD
 
 
 /* The Pololu MC33926 dual motor driver shield */
@@ -144,6 +145,8 @@ char argv2[32];
 long arg1;
 long arg2;
 
+int test=0;
+
 /* Clear the current command parameters */
 void resetCommand() {
   cmd = NULL;
@@ -164,11 +167,18 @@ int runCommand() {
   arg1 = atoi(argv1);
   arg2 = atoi(argv2);
 
-  //test
-//    cmd=MOTOR_SPEEDS;
+//  test
+
+//  if (test==0){
 //    moving=1;
-//    arg1=7;
-//    arg2=7;
+//    arg1=40;
+//    arg2=40;
+//    test=1;
+//    cmd=MOTOR_SPEEDS;
+//  }else{
+//    cmd=READ_ENCODERS;
+//  }
+// Serial.println("runCommand--------");
   ///
   switch (cmd) {
     case GET_BAUDRATE:
@@ -177,12 +187,30 @@ int runCommand() {
     case READ_PIDIN:
       Serial.print(readPidIn(LEFT));
       Serial.print(" ");
+#ifdef L298P      
       Serial.println(readPidIn(RIGHT));
+#endif
+#ifdef L298P_4WD 
+      Serial.print(readPidIn(RIGHT));
+      Serial.print(" ");
+      Serial.print(readPidIn(LEFT_H));
+      Serial.print(" ");
+      Serial.println(readPidIn(RIGHT_H));
+#endif      
       break;
     case READ_PIDOUT:
       Serial.print(readPidOut(LEFT));
       Serial.print(" ");
+#ifdef L298P      
       Serial.println(readPidOut(RIGHT));
+#endif
+#ifdef L298P_4WD 
+      Serial.print(readPidOut(RIGHT));
+      Serial.print(" ");
+      Serial.print(readPidOut(LEFT_H));
+      Serial.print(" ");
+      Serial.println(readPidOut(RIGHT_H));
+#endif       
       break;
     case ANALOG_READ:
       Serial.println(analogRead(arg1));
@@ -224,7 +252,16 @@ int runCommand() {
     case READ_ENCODERS:
       Serial.print(readEncoder(LEFT));
       Serial.print(" ");
+#ifdef L298P 
       Serial.println(readEncoder(RIGHT));
+#endif
+#ifdef L298P_4WD
+      Serial.print(readEncoder(RIGHT));
+      Serial.print(" ");
+      Serial.print(readEncoder(LEFT_H));
+      Serial.print(" ");
+      Serial.println(readEncoder(RIGHT_H));
+#endif      
       break;
     case RESET_ENCODERS:
       resetEncoders();
@@ -235,12 +272,22 @@ int runCommand() {
       /* Reset the auto stop timer */
       lastMotorCommand = millis();
       if (arg1 == 0 && arg2 == 0) {
+#ifdef L298P        
         setMotorSpeeds(0, 0);
+#endif
+
+#ifdef L298P_4WD
+        setMotorSpeeds(0, 0, 0, 0);
+#endif        
         moving = 0;
       }
       else moving = 1;
       leftPID.TargetTicksPerFrame = arg1;
       rightPID.TargetTicksPerFrame = arg2;
+#ifdef L298P_4WD      
+      leftPID_h.TargetTicksPerFrame = arg1;
+      rightPID_h.TargetTicksPerFrame = arg2;
+#endif       
       Serial.println("OK");
       break;
     case UPDATE_PID:
@@ -262,6 +309,20 @@ int runCommand() {
       right_Kd = pid_args[5];
       right_Ki = pid_args[6];
       right_Ko = pid_args[7];
+
+#ifdef L298P_4WD
+
+      left_h_Kp = pid_args[0];
+      left_h_Kd = pid_args[1];
+      left_h_Ki = pid_args[2];
+      left_h_Ko = pid_args[3];
+
+      right_h_Kp = pid_args[4];
+      right_h_Kd = pid_args[5];
+      right_h_Ki = pid_args[6];
+      right_h_Ko = pid_args[7];
+#endif
+      
       Serial.println("OK");
       break;
 #endif
@@ -284,17 +345,36 @@ void setup() {
   DDRC &= ~(1 << RIGHT_ENC_PIN_A);
   DDRC &= ~(1 << RIGHT_ENC_PIN_B);
 
+#ifdef L298P_4WD
+  DDRD &= ~(1 << LEFT_H_ENC_PIN_A);
+  DDRD &= ~(1 << LEFT_H_ENC_PIN_B);
+  DDRC &= ~(1 << RIGHT_H_ENC_PIN_A);
+  DDRC &= ~(1 << RIGHT_H_ENC_PIN_B);
+#endif  
+
   //enable pull up resistors
   PORTD |= (1 << LEFT_ENC_PIN_A);
   PORTD |= (1 << LEFT_ENC_PIN_B);
   PORTC |= (1 << RIGHT_ENC_PIN_A);
   PORTC |= (1 << RIGHT_ENC_PIN_B);
 
+#ifdef L298P_4WD
+  PORTD &= ~(1 << LEFT_H_ENC_PIN_A);
+  PORTD &= ~(1 << LEFT_H_ENC_PIN_B);
+  PORTC &= ~(1 << RIGHT_H_ENC_PIN_A);
+  PORTC &= ~(1 << RIGHT_H_ENC_PIN_B);
+#endif    
   // tell pin change mask to listen to left encoder pins
   PCMSK2 |= (1 << LEFT_ENC_PIN_A) | (1 << LEFT_ENC_PIN_B);
   // tell pin change mask to listen to right encoder pins
   PCMSK1 |= (1 << RIGHT_ENC_PIN_A) | (1 << RIGHT_ENC_PIN_B);
 
+#ifdef L298P_4WD
+  // tell pin change mask to listen to left encoder pins
+  PCMSK2 |= (1 << LEFT_ENC_PIN_A) | (1 << LEFT_ENC_PIN_B) | (1 << LEFT_H_ENC_PIN_A) | (1 << LEFT_H_ENC_PIN_B);
+  // tell pin change mask to listen to right encoder pins
+  PCMSK1 |= (1 << RIGHT_ENC_PIN_A) | (1 << RIGHT_ENC_PIN_B) | (1 << RIGHT_H_ENC_PIN_A) | (1 << RIGHT_H_ENC_PIN_B);
+#endif
   // enable PCINT1 and PCINT2 interrupt in the general interrupt mask
   PCICR |= (1 << PCIE1) | (1 << PCIE2);
 #endif
@@ -340,6 +420,7 @@ void loop() {
     updatePID();
     nextPID += PID_INTERVAL;
   }*/
+  //runCommand();
   //u 10:12:0:50:10:12:0:50
   while (Serial.available() > 0) {
 
@@ -391,7 +472,12 @@ void loop() {
   // Check to see if we have exceeded the auto-stop interval
   if ((millis() - lastMotorCommand) > AUTO_STOP_INTERVAL) {
     ;
+#ifdef L298P    
     setMotorSpeeds(0, 0);
+#endif
+#ifdef L298P_4WD
+    setMotorSpeeds(0, 0, 0, 0);
+#endif
     moving = 0;
   }
 

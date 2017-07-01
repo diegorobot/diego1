@@ -271,9 +271,8 @@ class Arduino:
 
     def get_encoder_counts(self):
         values = self.execute_array('e')
-        #print values
-        if len(values) != 2:
-            print "Encoder count was not 2"
+        if len(values) not in [2,4]:
+            print "Encoder count was not 2 or 4 for 4wd"
             raise SerialException
             return None
         else:
@@ -341,8 +340,9 @@ class Arduino:
 
     def get_pidin(self):
         values = self.execute_array('i')
-        if len(values) != 2:
-            print "pidin was not 2"
+        print("pidin_raw_data: "+str(values))
+        if len(values) not in [2,4]:
+            print "pidin was not 2 or 4 for 4wd"
             raise SerialException
             return None
         else:                                                                  
@@ -350,8 +350,9 @@ class Arduino:
 
     def get_pidout(self):
         values = self.execute_array('f')
-        if len(values) != 2:
-            print "pidout was not 2"
+        print("pidout_raw_data: "+str(values))
+        if len(values) not in [2,4]:
+            print "pidout was not 2 or 4 for 4wd"
             raise SerialException
             return None
         else:                                                                  

@@ -20,6 +20,8 @@
 #define ANALOG_WRITE   'x'
 #define LEFT            0
 #define RIGHT           1
+#define LEFT_H          2
+#define RIGHT_H         3
 #define READ_PIDOUT    'f'
 #define READ_PIDIN     'i'
 

@@ -38,7 +38,8 @@ class BaseController:
         self.rate = float(rospy.get_param("~base_controller_rate", 10))
         self.timeout = rospy.get_param("~base_controller_timeout", 1.0)
         self.stopped = False
-        self.debugPID=False
+        self.debugPID=True
+        self.four_wd=True
                  
         pid_params = dict()
         pid_params['wheel_diameter'] = rospy.get_param("~wheel_diameter", "") 
@@ -157,9 +158,16 @@ class BaseController:
             if self.debugPID:
             	rospy.logdebug("poll start-------------------------------: ")
 		try:
-			left_pidin, right_pidin = self.arduino.get_pidin()
-			rospy.logdebug("left_pidin: "+str(left_pidin))
-			rospy.logdebug("right_pidin: "+str(right_pidin))
+			if self.four_wd:
+				left_pidin, right_pidin, left_h_pidin, right_h_pidin =self.arduino.get_pidin()
+				rospy.logdebug("left_pidin: "+str(left_pidin))
+				rospy.logdebug("right_pidin: "+str(right_pidin))
+				rospy.logdebug("left_h_pidin: "+str(left_h_pidin))
+				rospy.logdebug("right_h_pidin: "+str(right_h_pidin))
+			else:
+				left_pidin, right_pidin = self.arduino.get_pidin()
+				rospy.logdebug("left_pidin: "+str(left_pidin))
+				rospy.logdebug("right_pidin: "+str(right_pidin))
 		except:
 			rospy.logerr("getpidin exception count: ")
 			return
@@ -167,9 +175,16 @@ class BaseController:
 		self.lEncoderPub.publish(left_pidin)
 		self.rEncoderPub.publish(right_pidin)
 		try:
-			left_pidout, right_pidout = self.arduino.get_pidout()
-			rospy.logdebug("left_pidout: "+str(left_pidout))
-			rospy.logdebug("right_pidout: "+str(right_pidout))
+			if self.four_wd:
+				left_pidout, right_pidout,left_h_pidout, right_h_pidout = self.arduino.get_pidout()
+				rospy.logdebug("left_pidout: "+str(left_pidout))
+				rospy.logdebug("right_pidout: "+str(right_pidout))
+				rospy.logdebug("left_h_pidout: "+str(left_h_pidout))
+				rospy.logdebug("right_h_pidout: "+str(right_h_pidout))
+			else:
+				left_pidout, right_pidout = self.arduino.get_pidout()
+				rospy.logdebug("left_pidout: "+str(left_pidout))
+				rospy.logdebug("right_pidout: "+str(right_pidout))
 		except:
 			rospy.logerr("getpidout exception count: ")
 			return
@@ -177,10 +192,18 @@ class BaseController:
 		self.rPidoutPub.publish(right_pidout)
             # Read the encoders
             try:
-                left_enc, right_enc = self.arduino.get_encoder_counts()
-                if self.debugPID:
-                	rospy.logdebug("left_enc: " + str(left_enc))
-			rospy.logdebug("right_enc: " +str(right_enc))
+            	if self.four_wd:
+            		left_enc, right_enc,left_h_enc, right_h_enc = self.arduino.get_encoder_counts()
+            		if self.debugPID:
+                		rospy.logdebug("left_enc: " + str(left_enc))
+				rospy.logdebug("right_enc: " +str(right_enc))
+				rospy.logdebug("left_h_enc: " + str(left_h_enc))
+				rospy.logdebug("right_h_enc: " +str(right_h_enc))
+            	else:
+                	left_enc, right_enc = self.arduino.get_encoder_counts()
+			if self.debugPID:
+                		rospy.logdebug("left_enc: " + str(left_enc))
+				rospy.logdebug("right_enc: " +str(right_enc))
             except:
                 self.bad_encoder_count += 1
                 rospy.logerr("Encoder exception count: " + str(self.bad_encoder_count))
